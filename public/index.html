@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JungleGaming — API Console</title>
+  <title>JungleGaming — Console de Testes</title>
   <style>
     :root {
       --bg: #0f1612;
@@ -37,7 +37,7 @@
       margin: 0 0 0.25rem;
       letter-spacing: -0.02em;
     }
-    .sub { color: var(--muted); margin-bottom: 1.75rem; }
+    .sub { color: var(--muted); margin-bottom: 1.75rem; line-height: 1.45; }
     .grid { display: grid; gap: 1rem; }
     @media (min-width: 800px) {
       .grid { grid-template-columns: 1fr 1fr; }
@@ -98,65 +98,96 @@
     .ok { color: var(--ok); }
     .err { color: var(--danger); }
     .span-2 { grid-column: 1 / -1; }
+    .tips {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>JungleGaming API</h1>
-    <p class="sub">Console local do Distributed Wagering Processor. As chamadas vão para esta mesma origem.</p>
+    <h1>JungleGaming</h1>
+    <p class="sub">
+      Console de testes do processador de apostas. Use para criar carteira, apostar
+      e forçar falhas (saldo insuficiente, idempotência, moeda errada, etc.).
+      Isto é só uma ferramenta — o desafio avalia a API e os testes, não o visual.
+    </p>
 
     <div class="grid">
       <section>
-        <h2>Health</h2>
+        <h2>Saúde da API</h2>
         <div class="row">
-          <button type="button" id="btnLive">GET /health/live</button>
-          <button type="button" class="secondary" id="btnReady">GET /health/ready</button>
+          <button type="button" id="btnLive">Verificar se está viva</button>
+          <button type="button" class="secondary" id="btnReady">Verificar se está pronta</button>
         </div>
         <div class="status" id="healthStatus"></div>
       </section>
 
       <section>
-        <h2>Wallet</h2>
-        <label>playerId (UUID)</label>
+        <h2>Roteiro rápido</h2>
+        <ol class="tips">
+          <li>Crie uma carteira com 1000.00</li>
+          <li>Faça uma aposta (BET) de 25.00</li>
+          <li>Confira o saldo e a reconciliação</li>
+          <li>Repita a mesma chave → deve ser replay</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Carteira</h2>
+        <label>ID do jogador (UUID)</label>
         <input id="playerId" value="" />
-        <label>initialBalance</label>
+        <label>Saldo inicial</label>
         <input id="initialBalance" value="1000.00" />
         <div class="row">
-          <button type="button" id="btnCreateWallet">POST /wallets</button>
-          <button type="button" class="secondary" id="btnGetWallet">GET wallet</button>
-          <button type="button" class="secondary" id="btnReconcile">Reconciliation</button>
+          <button type="button" id="btnCreateWallet">Criar carteira</button>
+          <button type="button" class="secondary" id="btnGetWallet">Buscar carteira</button>
+          <button type="button" class="secondary" id="btnReconcile">Reconciliar saldo × ledger</button>
         </div>
-        <label>walletId</label>
+        <label>ID da carteira</label>
         <input id="walletId" />
       </section>
 
+      <section>
+        <h2>Ideias de falha</h2>
+        <ul class="tips">
+          <li>BET maior que o saldo → rejeitada</li>
+          <li>Mesma chave + valor diferente → conflito</li>
+          <li>Moeda USD em carteira BRL → rejeitada</li>
+          <li>REFUND sem BET → pendente de referência</li>
+        </ul>
+      </section>
+
       <section class="span-2">
-        <h2>Wager transaction</h2>
-        <label>Idempotency-Key</label>
+        <h2>Transação de aposta</h2>
+        <label>Chave de idempotência (Idempotency-Key)</label>
         <input id="idemKey" value="provider-a:demo-1" />
-        <label>kind</label>
+        <label>Tipo</label>
         <select id="kind">
-          <option>BET</option>
-          <option>WIN</option>
-          <option>LOSS</option>
-          <option>REFUND</option>
-          <option>ROLLBACK</option>
+          <option value="BET">BET — aposta (débito)</option>
+          <option value="WIN">WIN — ganho (crédito)</option>
+          <option value="LOSS">LOSS — perda (sem mover saldo)</option>
+          <option value="REFUND">REFUND — estorno de BET</option>
+          <option value="ROLLBACK">ROLLBACK — reverte BET/WIN/REFUND</option>
         </select>
-        <label>amount</label>
+        <label>Valor</label>
         <input id="amount" value="25.00" />
-        <label>externalTransactionId</label>
+        <label>ID externo da transação</label>
         <input id="externalId" value="demo-1" />
-        <label>referenceExternalTransactionId (REFUND/ROLLBACK)</label>
-        <input id="refExternalId" value="" />
+        <label>ID externo de referência (obrigatório em REFUND/ROLLBACK)</label>
+        <input id="refExternalId" value="" placeholder="ex.: demo-1" />
         <div class="row">
-          <button type="button" id="btnBet">POST /wagering/transactions</button>
-          <button type="button" class="secondary" id="btnLedger">GET ledger</button>
+          <button type="button" id="btnBet">Enviar transação</button>
+          <button type="button" class="secondary" id="btnLedger">Ver ledger</button>
         </div>
       </section>
 
       <section class="span-2">
-        <h2>Response</h2>
-        <pre id="out">Pronto.</pre>
+        <h2>Resposta da API</h2>
+        <pre id="out">Pronto. Clique em “Verificar se está viva” para começar.</pre>
       </section>
     </div>
   </main>
@@ -175,22 +206,22 @@
         const text = await res.text();
         let body;
         try { body = JSON.parse(text); } catch { body = text; }
-        out.textContent = JSON.stringify({ status: res.status, body }, null, 2);
+        out.textContent = JSON.stringify({ statusHttp: res.status, corpo: body }, null, 2);
         return { res, body };
       } catch (err) {
-        out.textContent = String(err);
+        out.textContent = "Erro de rede: " + String(err);
         throw err;
       }
     }
 
     document.getElementById("btnLive").onclick = async () => {
       const { res } = await call("/health/live");
-      healthStatus.textContent = res.ok ? "live ok" : "live fail";
+      healthStatus.textContent = res.ok ? "API viva" : "API sem resposta";
       healthStatus.className = "status " + (res.ok ? "ok" : "err");
     };
     document.getElementById("btnReady").onclick = async () => {
       const { res } = await call("/health/ready");
-      healthStatus.textContent = res.ok ? "ready ok" : "ready fail";
+      healthStatus.textContent = res.ok ? "API pronta (Postgres + SQS)" : "API não pronta";
       healthStatus.className = "status " + (res.ok ? "ok" : "err");
     };
     document.getElementById("btnCreateWallet").onclick = async () => {
