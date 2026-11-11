@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JungleGaming — API Console</title>
+  <style>
+    :root {
+      --bg: #0f1612;
+      --panel: #17211b;
+      --ink: #e7f0e8;
+      --muted: #8fa396;
+      --accent: #c4f542;
+      --line: #2a3a30;
+      --danger: #ff6b6b;
+      --ok: #5dffa5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at top left, #1c3324 0%, transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+    h1 {
+      font-family: "IBM Plex Serif", Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      margin: 0 0 0.25rem;
+      letter-spacing: -0.02em;
+    }
+    .sub { color: var(--muted); margin-bottom: 1.75rem; }
+    .grid { display: grid; gap: 1rem; }
+    @media (min-width: 800px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.15rem;
+    }
+    section h2 {
+      margin: 0 0 0.75rem;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin: 0.55rem 0 0.25rem; }
+    input, select, textarea {
+      width: 100%;
+      background: #0d130f;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 0.55rem 0.65rem;
+      font: inherit;
+    }
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem; }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 0.55rem 1rem;
+      background: var(--accent);
+      color: #132016;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    pre {
+      margin: 1rem 0 0;
+      background: #0a0f0c;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.85rem;
+      overflow: auto;
+      max-height: 360px;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .status { font-size: 0.85rem; margin-top: 0.5rem; }
+    .ok { color: var(--ok); }
+    .err { color: var(--danger); }
+    .span-2 { grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>JungleGaming API</h1>
+    <p class="sub">Console local do Distributed Wagering Processor. As chamadas vão para esta mesma origem.</p>
+
+    <div class="grid">
+      <section>
+        <h2>Health</h2>
+        <div class="row">
+          <button type="button" id="btnLive">GET /health/live</button>
+          <button type="button" class="secondary" id="btnReady">GET /health/ready</button>
+        </div>
+        <div class="status" id="healthStatus"></div>
+      </section>
+
+      <section>
+        <h2>Wallet</h2>
+        <label>playerId (UUID)</label>
+        <input id="playerId" value="" />
+        <label>initialBalance</label>
+        <input id="initialBalance" value="1000.00" />
+        <div class="row">
+          <button type="button" id="btnCreateWallet">POST /wallets</button>
+          <button type="button" class="secondary" id="btnGetWallet">GET wallet</button>
+          <button type="button" class="secondary" id="btnReconcile">Reconciliation</button>
+        </div>
+        <label>walletId</label>
+        <input id="walletId" />
+      </section>
+
+      <section class="span-2">
+        <h2>Wager transaction</h2>
+        <label>Idempotency-Key</label>
+        <input id="idemKey" value="provider-a:demo-1" />
+        <label>kind</label>
+        <select id="kind">
+          <option>BET</option>
+          <option>WIN</option>
+          <option>LOSS</option>
+          <option>REFUND</option>
+          <option>ROLLBACK</option>
+        </select>
+        <label>amount</label>
+        <input id="amount" value="25.00" />
+        <label>externalTransactionId</label>
+        <input id="externalId" value="demo-1" />
+        <label>referenceExternalTransactionId (REFUND/ROLLBACK)</label>
+        <input id="refExternalId" value="" />
+        <div class="row">
+          <button type="button" id="btnBet">POST /wagering/transactions</button>
+          <button type="button" class="secondary" id="btnLedger">GET ledger</button>
+        </div>
+      </section>
+
+      <section class="span-2">
+        <h2>Response</h2>
+        <pre id="out">Pronto.</pre>
+      </section>
+    </div>
+  </main>
+  <script>
+    const out = document.getElementById("out");
+    const healthStatus = document.getElementById("healthStatus");
+    const uuid = () => crypto.randomUUID();
+    document.getElementById("playerId").value = uuid();
+
+    async function call(path, opts = {}) {
+      try {
+        const res = await fetch(path, {
+          headers: { "content-type": "application/json", ...(opts.headers || {}) },
+          ...opts,
+        });
+        const text = await res.text();
+        let body;
+        try { body = JSON.parse(text); } catch { body = text; }
+        out.textContent = JSON.stringify({ status: res.status, body }, null, 2);
+        return { res, body };
+      } catch (err) {
+        out.textContent = String(err);
+        throw err;
+      }
+    }
+
+    document.getElementById("btnLive").onclick = async () => {
+      const { res } = await call("/health/live");
+      healthStatus.textContent = res.ok ? "live ok" : "live fail";
+      healthStatus.className = "status " + (res.ok ? "ok" : "err");
+    };
+    document.getElementById("btnReady").onclick = async () => {
+      const { res } = await call("/health/ready");
+      healthStatus.textContent = res.ok ? "ready ok" : "ready fail";
+      healthStatus.className = "status " + (res.ok ? "ok" : "err");
+    };
+    document.getElementById("btnCreateWallet").onclick = async () => {
+      const { body } = await call("/wallets", {
+        method: "POST",
+        body: JSON.stringify({
+          playerId: document.getElementById("playerId").value,
+          initialBalance: {
+            amount: document.getElementById("initialBalance").value,
+            currency: "BRL",
+          },
+        }),
+      });
+      if (body?.id) document.getElementById("walletId").value = body.id;
+    };
+    document.getElementById("btnGetWallet").onclick = () =>
+      call("/wallets/" + document.getElementById("walletId").value);
+    document.getElementById("btnReconcile").onclick = () =>
+      call("/wallets/" + document.getElementById("walletId").value + "/reconciliation", {
+        method: "POST",
+      });
+    document.getElementById("btnLedger").onclick = () =>
+      call("/wallets/" + document.getElementById("walletId").value + "/ledger?limit=50");
+    document.getElementById("btnBet").onclick = async () => {
+      const externalId = document.getElementById("externalId").value;
+      const ref = document.getElementById("refExternalId").value.trim();
+      const payload = {
+        providerId: "provider-a",
+        externalTransactionId: externalId,
+        playerId: document.getElementById("playerId").value,
+        walletId: document.getElementById("walletId").value,
+        roundId: "round-demo",
+        gameId: "fortune-chimp",
+        kind: document.getElementById("kind").value,
+        money: {
+          amount: document.getElementById("amount").value,
+          currency: "BRL",
+        },
+      };
+      if (ref) payload.referenceExternalTransactionId = ref;
+      await call("/wagering/transactions", {
+        method: "POST",
+        headers: {
+          "Idempotency-Key": document.getElementById("idemKey").value || `provider-a:${externalId}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    };
+  </script>
+</body>
+</html>
