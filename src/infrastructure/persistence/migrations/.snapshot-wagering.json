@@ -1,0 +1,1726 @@
+{
+  "namespaces": [
+    "public"
+  ],
+  "name": "public",
+  "tables": [
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "varchar(256)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 256,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "consumer_name": {
+          "name": "consumer_name",
+          "type": "varchar(128)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": 128,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "char(64)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 64,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "inbox_messages",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "inbox_messages_pkey",
+          "unique": true,
+          "primary": true
+        },
+        {
+          "columnNames": [
+            "consumer_name",
+            "message_id"
+          ],
+          "composite": true,
+          "constraint": true,
+          "keyName": "uq_inbox_consumer_message",
+          "unique": true,
+          "primary": false
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "aggregate_id": {
+          "name": "aggregate_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "varchar(128)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 128,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "json"
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "int4",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 32,
+          "scale": 0,
+          "default": "0",
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "next_attempt_at": {
+          "name": "next_attempt_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "outbox_messages",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "published_at",
+            "next_attempt_at"
+          ],
+          "composite": true,
+          "constraint": false,
+          "keyName": "idx_outbox_due",
+          "unique": false,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "outbox_messages_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {},
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "reference_transaction_id": {
+          "name": "reference_transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "reversal_kind": {
+          "name": "reversal_kind",
+          "type": "varchar(32)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 32,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "reversal_transaction_id": {
+          "name": "reversal_transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "transaction_reversals",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "transaction_reversals_pkey",
+          "unique": true,
+          "primary": true
+        },
+        {
+          "columnNames": [
+            "reference_transaction_id",
+            "reversal_kind"
+          ],
+          "composite": true,
+          "constraint": true,
+          "keyName": "uq_reversal_once_per_kind",
+          "unique": true,
+          "primary": false
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "transaction_reversals_reference_transaction_id_fkey": {
+          "columnNames": [
+            "reference_transaction_id"
+          ],
+          "constraintName": "transaction_reversals_reference_transaction_id_fkey",
+          "localTableName": "public.transaction_reversals",
+          "referencedTableName": "public.wager_transactions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "no action",
+          "deleteRule": "no action"
+        },
+        "transaction_reversals_reversal_transaction_id_fkey": {
+          "columnNames": [
+            "reversal_transaction_id"
+          ],
+          "constraintName": "transaction_reversals_reversal_transaction_id_fkey",
+          "localTableName": "public.transaction_reversals",
+          "referencedTableName": "public.wager_transactions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "no action",
+          "deleteRule": "no action"
+        }
+      },
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "varchar(128)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": 128,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "external_transaction_id": {
+          "name": "external_transaction_id",
+          "type": "varchar(256)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 256,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "varchar(512)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": 512,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "char(64)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 64,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "wallet_id": {
+          "name": "wallet_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "round_id": {
+          "name": "round_id",
+          "type": "varchar(256)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 256,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "game_id": {
+          "name": "game_id",
+          "type": "varchar(256)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 256,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "kind": {
+          "name": "kind",
+          "type": "wager_kind",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ],
+          "mappedType": "unknown",
+          "nativeEnumName": "wager_kind"
+        },
+        "money_amount": {
+          "name": "money_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "money_currency": {
+          "name": "money_currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "reference_external_transaction_id": {
+          "name": "reference_external_transaction_id",
+          "type": "varchar(256)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 256,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "status": {
+          "name": "status",
+          "type": "wager_status",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ],
+          "mappedType": "unknown",
+          "nativeEnumName": "wager_status"
+        },
+        "reference_transaction_id": {
+          "name": "reference_transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "failure_code",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ],
+          "mappedType": "unknown",
+          "nativeEnumName": "failure_code"
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "observed_balance_amount": {
+          "name": "observed_balance_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "observed_balance_currency": {
+          "name": "observed_balance_currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "attempt_count": {
+          "name": "attempt_count",
+          "type": "int4",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 32,
+          "scale": 0,
+          "default": "0",
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "next_attempt_at": {
+          "name": "next_attempt_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "wager_transactions",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "status",
+            "next_attempt_at"
+          ],
+          "composite": true,
+          "constraint": false,
+          "keyName": "idx_wager_pending_ref",
+          "unique": false,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "provider_id",
+            "reference_external_transaction_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "keyName": "idx_wager_reference",
+          "unique": false,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "idempotency_key"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "uq_wager_idempotency_key",
+          "unique": true,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "provider_id",
+            "external_transaction_id"
+          ],
+          "composite": true,
+          "constraint": true,
+          "keyName": "uq_wager_provider_external",
+          "unique": true,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "wager_transactions_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "chk_wager_money_non_negative",
+          "columnName": "money_amount",
+          "definition": "CHECK ((money_amount >= (0)::numeric))",
+          "expression": "money_amount >= 0"
+        }
+      ],
+      "foreignKeys": {
+        "wager_transactions_wallet_id_fkey": {
+          "columnNames": [
+            "wallet_id"
+          ],
+          "constraintName": "wager_transactions_wallet_id_fkey",
+          "localTableName": "public.wager_transactions",
+          "referencedTableName": "public.wallets",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "no action",
+          "deleteRule": "no action"
+        }
+      },
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "wallet_id": {
+          "name": "wallet_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "direction": {
+          "name": "direction",
+          "type": "ledger_direction",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [
+            "DEBIT",
+            "CREDIT"
+          ],
+          "mappedType": "unknown",
+          "nativeEnumName": "ledger_direction"
+        },
+        "money_amount": {
+          "name": "money_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "money_currency": {
+          "name": "money_currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "balance_before_amount": {
+          "name": "balance_before_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "balance_before_currency": {
+          "name": "balance_before_currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "balance_after_amount": {
+          "name": "balance_after_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "balance_after_currency": {
+          "name": "balance_after_currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "wallet_ledger_entries",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "wallet_id",
+            "created_at",
+            "id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "keyName": "idx_ledger_wallet_cursor",
+          "unique": false,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "keyName": "uq_ledger_transaction",
+          "unique": true,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "wallet_ledger_entries_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "chk_ledger_amounts_non_negative",
+          "columnName": "balance_before_amount",
+          "definition": "CHECK (((money_amount >= (0)::numeric) AND (balance_before_amount >= (0)::numeric) AND (balance_after_amount >= (0)::numeric)))",
+          "expression": "money_amount >= (0) AND balance_before_amount >= (0) AND balance_after_amount >= (0)"
+        },
+        {
+          "name": "chk_ledger_balanced",
+          "columnName": "money_amount",
+          "definition": "CHECK ((((direction = 'CREDIT'::ledger_direction) AND (balance_after_amount = (balance_before_amount + money_amount))) OR ((direction = 'DEBIT'::ledger_direction) AND (balance_after_amount = (balance_before_amount - money_amount)))))",
+          "expression": "((direction = 'CREDIT'::ledger_direction) AND (balance_after_amount = (balance_before_amount + money_amount))) OR ((direction = 'DEBIT'::ledger_direction) AND (balance_after_amount = (balance_before_amount - money_amount)))"
+        }
+      ],
+      "foreignKeys": {
+        "wallet_ledger_entries_transaction_id_fkey": {
+          "columnNames": [
+            "transaction_id"
+          ],
+          "constraintName": "wallet_ledger_entries_transaction_id_fkey",
+          "localTableName": "public.wallet_ledger_entries",
+          "referencedTableName": "public.wager_transactions",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "no action",
+          "deleteRule": "no action"
+        },
+        "wallet_ledger_entries_wallet_id_fkey": {
+          "columnNames": [
+            "wallet_id"
+          ],
+          "constraintName": "wallet_ledger_entries_wallet_id_fkey",
+          "localTableName": "public.wallet_ledger_entries",
+          "referencedTableName": "public.wallets",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "updateRule": "no action",
+          "deleteRule": "no action"
+        }
+      },
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": true,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": true,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "uuid"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "char(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 3,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "character"
+        },
+        "balance_amount": {
+          "name": "balance_amount",
+          "type": "numeric(20,2)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 20,
+          "scale": 2,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "decimal"
+        },
+        "version": {
+          "name": "version",
+          "type": "int4",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": 32,
+          "scale": 0,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": 6,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "datetime"
+        }
+      },
+      "name": "wallets",
+      "schema": "public",
+      "indexes": [
+        {
+          "columnNames": [
+            "player_id",
+            "currency"
+          ],
+          "composite": true,
+          "constraint": true,
+          "keyName": "uq_wallets_player_currency",
+          "unique": true,
+          "primary": false
+        },
+        {
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "keyName": "wallets_pkey",
+          "unique": true,
+          "primary": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "chk_wallets_balance_non_negative",
+          "columnName": "balance_amount",
+          "definition": "CHECK ((balance_amount >= (0)::numeric))",
+          "expression": "balance_amount >= 0"
+        },
+        {
+          "name": "chk_wallets_version_positive",
+          "columnName": "version",
+          "definition": "CHECK ((version >= 1))",
+          "expression": "version >= 1"
+        }
+      ],
+      "foreignKeys": {},
+      "nativeEnums": {
+        "failure_code": {
+          "name": "failure_code",
+          "schema": "public",
+          "items": [
+            "INSUFFICIENT_BALANCE",
+            "NEGATIVE_BALANCE_ON_REVERSAL",
+            "CURRENCY_MISMATCH",
+            "WALLET_NOT_FOUND",
+            "PLAYER_WALLET_MISMATCH",
+            "IDEMPOTENCY_CONFLICT",
+            "INVALID_PAYLOAD",
+            "INVALID_KIND",
+            "OPENING_NOT_ALLOWED",
+            "MISSING_REFERENCE",
+            "REFERENCE_NOT_FOUND",
+            "REFERENCE_NOT_PROCESSED",
+            "REFERENCE_SCOPE_MISMATCH",
+            "INVALID_REFERENCE_KIND",
+            "ALREADY_REVERSED",
+            "AMOUNT_MISMATCH",
+            "REFERENCE_TIMEOUT",
+            "PERMANENT_INFRASTRUCTURE"
+          ]
+        },
+        "ledger_direction": {
+          "name": "ledger_direction",
+          "schema": "public",
+          "items": [
+            "DEBIT",
+            "CREDIT"
+          ]
+        },
+        "wager_kind": {
+          "name": "wager_kind",
+          "schema": "public",
+          "items": [
+            "OPENING",
+            "BET",
+            "WIN",
+            "LOSS",
+            "REFUND",
+            "ROLLBACK"
+          ]
+        },
+        "wager_status": {
+          "name": "wager_status",
+          "schema": "public",
+          "items": [
+            "PENDING",
+            "PENDING_REFERENCE",
+            "PROCESSED",
+            "REJECTED",
+            "FAILED"
+          ]
+        }
+      },
+      "comment": null
+    }
+  ],
+  "nativeEnums": {
+    "failure_code": {
+      "name": "failure_code",
+      "schema": "public",
+      "items": [
+        "INSUFFICIENT_BALANCE",
+        "NEGATIVE_BALANCE_ON_REVERSAL",
+        "CURRENCY_MISMATCH",
+        "WALLET_NOT_FOUND",
+        "PLAYER_WALLET_MISMATCH",
+        "IDEMPOTENCY_CONFLICT",
+        "INVALID_PAYLOAD",
+        "INVALID_KIND",
+        "OPENING_NOT_ALLOWED",
+        "MISSING_REFERENCE",
+        "REFERENCE_NOT_FOUND",
+        "REFERENCE_NOT_PROCESSED",
+        "REFERENCE_SCOPE_MISMATCH",
+        "INVALID_REFERENCE_KIND",
+        "ALREADY_REVERSED",
+        "AMOUNT_MISMATCH",
+        "REFERENCE_TIMEOUT",
+        "PERMANENT_INFRASTRUCTURE"
+      ]
+    },
+    "ledger_direction": {
+      "name": "ledger_direction",
+      "schema": "public",
+      "items": [
+        "DEBIT",
+        "CREDIT"
+      ]
+    },
+    "wager_kind": {
+      "name": "wager_kind",
+      "schema": "public",
+      "items": [
+        "OPENING",
+        "BET",
+        "WIN",
+        "LOSS",
+        "REFUND",
+        "ROLLBACK"
+      ]
+    },
+    "wager_status": {
+      "name": "wager_status",
+      "schema": "public",
+      "items": [
+        "PENDING",
+        "PENDING_REFERENCE",
+        "PROCESSED",
+        "REJECTED",
+        "FAILED"
+      ]
+    }
+  }
+}

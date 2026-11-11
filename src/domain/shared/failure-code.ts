@@ -1,0 +1,24 @@
+/**
+ * Stable, machine-readable failure taxonomy for providers.
+ * Documented in ARCHITECTURE.md.
+ */
+export enum FailureCode {
+  InsufficientBalance = "INSUFFICIENT_BALANCE",
+  NegativeBalanceOnReversal = "NEGATIVE_BALANCE_ON_REVERSAL",
+  CurrencyMismatch = "CURRENCY_MISMATCH",
+  WalletNotFound = "WALLET_NOT_FOUND",
+  PlayerWalletMismatch = "PLAYER_WALLET_MISMATCH",
+  IdempotencyConflict = "IDEMPOTENCY_CONFLICT",
+  InvalidPayload = "INVALID_PAYLOAD",
+  InvalidKind = "INVALID_KIND",
+  OpeningNotAllowed = "OPENING_NOT_ALLOWED",
+  MissingReference = "MISSING_REFERENCE",
+  ReferenceNotFound = "REFERENCE_NOT_FOUND",
+  ReferenceNotProcessed = "REFERENCE_NOT_PROCESSED",
+  ReferenceScopeMismatch = "REFERENCE_SCOPE_MISMATCH",
+  InvalidReferenceKind = "INVALID_REFERENCE_KIND",
+  AlreadyReversed = "ALREADY_REVERSED",
+  AmountMismatch = "AMOUNT_MISMATCH",
+  ReferenceTimeout = "REFERENCE_TIMEOUT",
+  PermanentInfrastructure = "PERMANENT_INFRASTRUCTURE",
+}
