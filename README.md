@@ -68,9 +68,11 @@ Entrada equivalente via SQS: fila `wager-transactions.fifo` (mesmo use case da H
 ## Testes
 
 ```bash
-bun test test/unit
-bun test test/integration --timeout 120000   # Postgres + LocalStack reais
-bun test test/concurrency --timeout 180000  # races reais (cenário §8, 50× replay, outbox)
+bun run test:unit
+bun run test:integration      # Postgres + LocalStack reais
+bun run test:concurrency      # §8, 50× replay, outbox, ≥3 processos OS
+bun run test:all
+bun run test:load             # diferencial — ver docs/LOAD_TEST.md
 ```
 
 Invariante checada: `wallet.balance == saldo reconstruído pelo ledger`.

@@ -4,11 +4,13 @@ import { ValidationPipe } from "@nestjs/common";
 import { MikroORM } from "@mikro-orm/core";
 import { AppModule } from "./app.module";
 import { AppLogger } from "./infrastructure/observability/logger.service";
+import { GlobalExceptionFilter } from "./interfaces/http/http-exception.filter";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = app.get(AppLogger);
   app.useLogger(logger);
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import {
+  DeadlockException,
   EntityManager,
   LockMode,
   UniqueConstraintViolationException,
@@ -98,136 +99,158 @@ export class ProcessWagerUseCase {
       }),
     );
 
-    const fork = this.em.fork();
-    try {
-      const result = await fork.transactional(async (tem) => {
-        // Inbox dedup (SQS path)
-        if (input.inbox) {
-          const existingInbox = await tem.findOne(InboxMessageEntity, {
-            consumerName: input.inbox.consumerName,
-            messageId: input.inbox.messageId,
-          });
-          if (existingInbox?.processedAt) {
-            this.metrics.duplicates.inc({ source: "inbox" });
-            const prior = await tem.findOne(WagerTransactionEntity, {
-              idempotencyKey: input.idempotencyKey,
-            });
-            if (prior) {
-              return this.toResult(mapTxEntityToDomain(prior), true);
-            }
-          }
-        }
-
-        // Idempotency
-        const existing = await tem.findOne(WagerTransactionEntity, {
-          idempotencyKey: input.idempotencyKey,
+    const maxAttempts = 5;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const result = await this.executeOnce(input, payloadHash);
+        this.metrics.processingLatency.observe(
+          { kind: String(input.kind) },
+          (Date.now() - started) / 1000,
+        );
+        this.metrics.transactions.inc({
+          status: result.status,
+          kind: String(input.kind),
         });
-        if (existing) {
-          if (existing.payloadHash !== payloadHash) {
-            this.metrics.duplicates.inc({ source: "idempotency_conflict" });
-            throw new IdempotencyConflictError();
-          }
-          this.metrics.duplicates.inc({ source: "idempotency_replay" });
-          const domain = mapTxEntityToDomain(existing);
-          if (
-            domain.status === WagerTransactionStatus.PendingReference ||
-            domain.status === WagerTransactionStatus.Pending
-          ) {
-            return this.processExisting(tem, domain, existing, input);
-          }
-          return this.toResult(domain, true);
-        }
-
-        let money: Money;
-        let kind: WagerTransactionKind;
-        try {
-          money = Money.from(input.money);
-          money.assertNonNegative("money");
-          kind = this.parseKind(input.kind);
-        } catch {
-          // Persist rejected invalid payload when possible — for create validation failures,
-          // surface as INVALID_PAYLOAD without wallet lock.
-          throw Object.assign(new Error("INVALID_PAYLOAD"), {
-            failureCode: FailureCode.InvalidPayload,
-          });
-        }
-
-        if (kind === WagerTransactionKind.Opening) {
-          throw Object.assign(new Error("OPENING_NOT_ALLOWED"), {
-            failureCode: FailureCode.OpeningNotAllowed,
-          });
-        }
-
-        const tx = WagerTransaction.create({
-          id: newId(),
-          providerId: input.providerId,
-          externalTransactionId: input.externalTransactionId,
-          idempotencyKey: input.idempotencyKey,
-          payloadHash,
-          walletId: input.walletId,
-          playerId: input.playerId,
-          roundId: input.roundId,
-          gameId: input.gameId,
-          kind,
-          money,
-          referenceExternalTransactionId: input.referenceExternalTransactionId,
-        });
-
-        const txEntity = mapDomainTxToEntity(tx);
-        tem.persist(txEntity);
-        // Flush so ledger FK (transaction_id) can resolve.
-        await tem.flush();
-
-        if (input.inbox) {
-          const inbox = InboxMessage.receive({
-            messageId: input.inbox.messageId,
-            consumerName: input.inbox.consumerName,
-            payloadHash,
-          });
-          tem.persist(mapInboxToEntity(inbox, newId()));
-        }
-
-        const result = await this.applyTransaction(tem, tx, txEntity, input);
-
-        if (input.inbox) {
-          const inboxRow = await tem.findOneOrFail(InboxMessageEntity, {
-            consumerName: input.inbox.consumerName,
-            messageId: input.inbox.messageId,
-          });
-          inboxRow.processedAt = new Date();
-        }
-
-        await tem.flush();
         return result;
-      });
-
-      this.metrics.processingLatency.observe(
-        { kind: String(input.kind) },
-        (Date.now() - started) / 1000,
-      );
-      this.metrics.transactions.inc({
-        status: result.status,
-        kind: String(input.kind),
-      });
-      return result;
-    } catch (err) {
-      if (err instanceof IdempotencyConflictError) {
+      } catch (err) {
+        lastError = err;
+        if (err instanceof IdempotencyConflictError) {
+          throw err;
+        }
+        if (err instanceof UniqueConstraintViolationException) {
+          const again = await this.em.fork().findOne(WagerTransactionEntity, {
+            idempotencyKey: input.idempotencyKey,
+          });
+          if (again) {
+            if (again.payloadHash !== payloadHash) {
+              throw new IdempotencyConflictError();
+            }
+            return this.toResult(mapTxEntityToDomain(again), true);
+          }
+        }
+        if (err instanceof DeadlockException && attempt < maxAttempts) {
+          this.metrics.lockConflicts.inc({ reason: "deadlock_retry" });
+          this.metrics.retries.inc({ component: "deadlock" });
+          await new Promise((r) => setTimeout(r, 10 * attempt + Math.random() * 20));
+          continue;
+        }
         throw err;
       }
-      if (err instanceof UniqueConstraintViolationException) {
-        // Race on idempotency unique — replay
-        const again = await this.em.fork().findOne(WagerTransactionEntity, {
-          idempotencyKey: input.idempotencyKey,
+    }
+    throw lastError;
+  }
+
+  private async executeOnce(
+    input: ProcessWagerInput,
+    payloadHash: string,
+  ): Promise<ProcessWagerResult> {
+    const fork = this.em.fork();
+    return fork.transactional(async (tem) => {
+      // Inbox dedup (SQS path)
+      if (input.inbox) {
+        const existingInbox = await tem.findOne(InboxMessageEntity, {
+          consumerName: input.inbox.consumerName,
+          messageId: input.inbox.messageId,
         });
-        if (again) {
-          if (again.payloadHash !== payloadHash) {
-            throw new IdempotencyConflictError();
+        if (existingInbox?.processedAt) {
+          this.metrics.duplicates.inc({ source: "inbox" });
+          const prior = await tem.findOne(WagerTransactionEntity, {
+            idempotencyKey: input.idempotencyKey,
+          });
+          if (prior) {
+            return this.toResult(mapTxEntityToDomain(prior), true);
           }
-          return this.toResult(mapTxEntityToDomain(again), true);
         }
       }
-      throw err;
-    }
+
+      // Idempotency
+      const existing = await tem.findOne(WagerTransactionEntity, {
+        idempotencyKey: input.idempotencyKey,
+      });
+      if (existing) {
+        if (existing.payloadHash !== payloadHash) {
+          this.metrics.duplicates.inc({ source: "idempotency_conflict" });
+          throw new IdempotencyConflictError();
+        }
+        this.metrics.duplicates.inc({ source: "idempotency_replay" });
+        const domain = mapTxEntityToDomain(existing);
+        if (
+          domain.status === WagerTransactionStatus.PendingReference ||
+          domain.status === WagerTransactionStatus.Pending
+        ) {
+          return this.processExisting(tem, domain, existing, input);
+        }
+        return this.toResult(domain, true);
+      }
+
+      let money: Money;
+      let kind: WagerTransactionKind;
+      try {
+        money = Money.from(input.money);
+        money.assertNonNegative("money");
+        kind = this.parseKind(input.kind);
+      } catch {
+        throw Object.assign(new Error("INVALID_PAYLOAD"), {
+          failureCode: FailureCode.InvalidPayload,
+        });
+      }
+
+      if (kind === WagerTransactionKind.Opening) {
+        throw Object.assign(new Error("OPENING_NOT_ALLOWED"), {
+          failureCode: FailureCode.OpeningNotAllowed,
+        });
+      }
+
+      // Lock wallet BEFORE inserting rows that FK-reference it.
+      // Avoids ShareLock(FK) → Exclusive(FOR UPDATE) upgrade deadlocks.
+      await tem.findOne(
+        WalletEntity,
+        { id: input.walletId },
+        { lockMode: LockMode.PESSIMISTIC_WRITE },
+      );
+
+      const tx = WagerTransaction.create({
+        id: newId(),
+        providerId: input.providerId,
+        externalTransactionId: input.externalTransactionId,
+        idempotencyKey: input.idempotencyKey,
+        payloadHash,
+        walletId: input.walletId,
+        playerId: input.playerId,
+        roundId: input.roundId,
+        gameId: input.gameId,
+        kind,
+        money,
+        referenceExternalTransactionId: input.referenceExternalTransactionId,
+      });
+
+      const txEntity = mapDomainTxToEntity(tx);
+      tem.persist(txEntity);
+      await tem.flush();
+
+      if (input.inbox) {
+        const inbox = InboxMessage.receive({
+          messageId: input.inbox.messageId,
+          consumerName: input.inbox.consumerName,
+          payloadHash,
+        });
+        tem.persist(mapInboxToEntity(inbox, newId()));
+      }
+
+      const result = await this.applyTransaction(tem, tx, txEntity, input);
+
+      if (input.inbox) {
+        const inboxRow = await tem.findOneOrFail(InboxMessageEntity, {
+          consumerName: input.inbox.consumerName,
+          messageId: input.inbox.messageId,
+        });
+        inboxRow.processedAt = new Date();
+      }
+
+      await tem.flush();
+      return result;
+    });
   }
 
   /** Reprocess a PENDING_REFERENCE transaction (worker). */

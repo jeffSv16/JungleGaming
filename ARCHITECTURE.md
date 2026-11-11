@@ -59,7 +59,7 @@ Terminal states are immutable (programming error to transition).
 
 **Unit of concurrency = `walletId`.**
 
-Strategy: **pessimistic row lock** (`SELECT … FOR UPDATE`) on the wallet inside the financial transaction.
+Strategy: **pessimistic row lock** (`SELECT … FOR UPDATE`) on the wallet inside the financial transaction, acquired **before** inserting rows that FK-reference the wallet (avoids ShareLock→Exclusive upgrade deadlocks under multi-instance load). Transient `DeadlockException`s are retried with jitter (bounded).
 
 Why not optimistic-only: hot wallets (section 8 scenario) would thrash on version conflicts; pessimistic serializes contenders on one row while other wallets remain fully parallel.
 
@@ -106,10 +106,18 @@ Wallet mutation + ledger + inbox + outbox row are **one** PostgreSQL transaction
 - Prometheus metrics: transactions by status, duplicates, retries, DLQ, lock conflicts, outbox lag, processing latency, reconciliation divergences.
 - `/health/live` vs `/health/ready` (Postgres + SQS).
 
+## PENDING_REFERENCE policy
+
+- Base backoff **500ms**, exponential (`500 * 2^min(attempt,6)`).
+- Max attempts **8** (~up to ~1 minute of retries depending on scheduling).
+- Exhausted → `REJECTED` + `REFERENCE_TIMEOUT` + `WagerTransactionRejected` outbox event.
+
+Justification: game-provider callbacks that arrive seconds apart should settle; longer gaps are operational incidents, not infinite waits.
+
 ## Trade-offs & limitations
 
 - Single currency assumed in fixtures (BRL); model remains multi-currency.
 - Partial refunds/rollbacks out of scope.
 - Double-entry bookkeeping not implemented (optional).
 - OpenTelemetry / dashboards optional and not shipped.
-- Multi-instance load test script can be added as `bun run test:load` later; concurrency suite already exercises real parallel races against PostgreSQL + LocalStack.
+- Load characterization: `bun run test:load` (see `docs/LOAD_TEST.md`). Multi-instance correctness is covered by OS-level process tests in `test/concurrency/multi-instance.concurrency.test.ts`.
