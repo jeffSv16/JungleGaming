@@ -77,7 +77,7 @@ export class CreateWalletUseCase {
             updatedAt: wallet.updatedAt,
           }),
         );
-        // Ensure wallet row exists before FK dependents (ledger / opening tx).
+
         await tem.flush();
 
         if (initial.isPositive()) {

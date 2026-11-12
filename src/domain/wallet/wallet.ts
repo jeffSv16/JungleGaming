@@ -24,11 +24,6 @@ export interface WalletMutationResult {
   entry: WalletLedgerEntry;
 }
 
-/**
- * Wallet aggregate root.
- * Balance mutations always produce a corresponding ledger entry.
- * Optimistic locking via `version` (incremented only when balance changes).
- */
 export class Wallet {
   private constructor(
     public readonly id: string,
@@ -59,7 +54,7 @@ export class Wallet {
     );
   }
 
-  /** Reconstruction from persistence — does not revalidate transitions. */
+
   static rehydrate(state: WalletState): Wallet {
     return new Wallet(
       state.id,
@@ -143,10 +138,7 @@ export class Wallet {
     return { wallet: this, entry };
   }
 
-  /**
-   * Applies the inverse of a prior ledger movement.
-   * Used by ROLLBACK. Rejects with NegativeBalanceError if result would be negative.
-   */
+
   applyInverse(props: {
     entryId: string;
     transactionId: string;

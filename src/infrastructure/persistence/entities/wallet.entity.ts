@@ -14,7 +14,7 @@ export class WalletEntity {
   @Property({ length: 3 })
   currency!: string;
 
-  /** Exact decimal as string — never float */
+
   @Property({ fieldName: "balance_amount", type: "numeric", precision: 20, scale: 2 })
   balanceAmount!: string;
 

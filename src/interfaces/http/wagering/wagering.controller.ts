@@ -175,9 +175,9 @@ function mapHttpStatus(
       return HttpStatus.OK;
     case WagerTransactionStatus.Pending:
     case WagerTransactionStatus.PendingReference:
-      return HttpStatus.ACCEPTED; // 202 — accepted, processing pending
+      return HttpStatus.ACCEPTED;
     case WagerTransactionStatus.Rejected:
-      return HttpStatus.UNPROCESSABLE_ENTITY; // 422 — business rule
+      return HttpStatus.UNPROCESSABLE_ENTITY;
     case WagerTransactionStatus.Failed:
       return HttpStatus.INTERNAL_SERVER_ERROR;
     default:

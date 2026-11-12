@@ -1,9 +1,5 @@
 import { createHash } from "node:crypto";
 
-/**
- * Canonical JSON: recursively sort object keys, then SHA-256 hex.
- * Transport metadata (Idempotency-Key header, messageId, etc.) must NOT be included.
- */
 export function canonicalJson(value: unknown): string {
   return JSON.stringify(sortKeys(value));
 }
@@ -27,7 +23,6 @@ function sortKeys(value: unknown): unknown {
   return value;
 }
 
-/** Business fields that participate in idempotency payload hashing. */
 export function wagerBusinessPayload(input: {
   providerId: string;
   externalTransactionId: string;

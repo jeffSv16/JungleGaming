@@ -9,9 +9,6 @@ export interface LogFields {
   [key: string]: unknown;
 }
 
-/**
- * Structured JSON logger. Never logs full financial payloads.
- */
 @Injectable()
 export class AppLogger implements NestLoggerService {
   private write(
@@ -24,7 +21,7 @@ export class AppLogger implements NestLoggerService {
     delete safe.payload;
     delete safe.initialBalance;
     delete safe.balance;
-    // eslint-disable-next-line no-console
+
     console.log(
       JSON.stringify({
         level,

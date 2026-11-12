@@ -35,7 +35,7 @@ export class WagerSqsConsumer implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     this.shuttingDown = true;
     this.running = false;
-    // Wait for in-flight messages to finish (or visibility returns them)
+
     const deadline = Date.now() + 25_000;
     while (this.inFlight > 0 && Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 100));
@@ -126,7 +126,7 @@ export class WagerSqsConsumer implements OnModuleInit, OnModuleDestroy {
         },
         correlationId: businessMessageId,
       });
-      // Ack only after commit (use case returns after transactional commit)
+
       await this.sqs.ack(queueUrl, msg.receiptHandle);
       this.logger.log("sqs_message_processed", {
         messageId: businessMessageId,
@@ -135,7 +135,7 @@ export class WagerSqsConsumer implements OnModuleInit, OnModuleDestroy {
       });
     } catch (err) {
       if (err instanceof IdempotencyConflictError) {
-        // Terminal business conflict — ack
+
         await this.sqs.ack(queueUrl, msg.receiptHandle);
         return;
       }

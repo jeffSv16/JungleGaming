@@ -8,11 +8,6 @@ import {
 import type { Response } from "express";
 import { IdempotencyConflictError } from "../../domain/shared/domain-error";
 
-/**
- * Consistent HTTP mapping across endpoints:
- * 400 invalid payload, 409 idempotency/conflict, 422 business reject,
- * 202 pending, 503 transient infra.
- */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {

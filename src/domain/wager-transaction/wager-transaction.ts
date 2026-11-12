@@ -65,12 +65,6 @@ const TERMINAL: ReadonlySet<WagerTransactionStatus> = new Set([
   WagerTransactionStatus.Failed,
 ]);
 
-/**
- * Valid transitions:
- * PENDING -> PROCESSED | REJECTED | FAILED | PENDING_REFERENCE
- * PENDING_REFERENCE -> PROCESSED | REJECTED | FAILED | PENDING_REFERENCE (retry)
- * PROCESSED | REJECTED | FAILED -> (none — terminal)
- */
 export class WagerTransaction {
   private constructor(
     public readonly id: string,
@@ -95,7 +89,7 @@ export class WagerTransaction {
     private _nextAttemptAt?: Date,
   ) {}
 
-  /** Born PENDING. Validates reference requirements by kind. */
+
   static create(props: CreateWagerTransactionProps): WagerTransaction {
     if (props.kind === WagerTransactionKind.Opening) {
       throw new InvalidTransactionStateError(
@@ -112,7 +106,7 @@ export class WagerTransaction {
       );
     }
     if (!requiresRef && props.referenceExternalTransactionId) {
-      // WIN may optionally reference a BET; allow optional refs for WIN.
+
       if (props.kind !== WagerTransactionKind.Win) {
         throw new InvalidTransactionStateError(
           `${props.kind} must not carry referenceExternalTransactionId`,
@@ -272,10 +266,7 @@ export class WagerTransaction {
     return this.payloadHash === payloadHash;
   }
 
-  /**
-   * Ledger direction for this transaction relative to an optional reference.
-   * LOSS has no ledger. ROLLBACK inverts the reference direction.
-   */
+
   ledgerDirectionFor(reference?: WagerTransaction): LedgerDirection | null {
     switch (this.kind) {
       case WagerTransactionKind.Bet:

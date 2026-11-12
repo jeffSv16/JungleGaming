@@ -24,13 +24,13 @@ export class HealthController {
     });
   }
 
-  /** Process alive — no auth. */
+
   @Get("health/live")
   live() {
     return { status: "ok" };
   }
 
-  /** PostgreSQL + SQS reachable — no auth. */
+
   @Get("health/ready")
   async ready() {
     const checks: Record<string, string> = {};

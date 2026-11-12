@@ -48,7 +48,6 @@ import {
 } from "../../infrastructure/persistence/mappers/wager.mapper";
 import { MetricsService } from "../../infrastructure/observability/metrics.service";
 
-/** Max attempts for PENDING_REFERENCE before REFERENCE_TIMEOUT rejection. */
 export const PENDING_REFERENCE_MAX_ATTEMPTS = 8;
 const PENDING_REFERENCE_BASE_BACKOFF_MS = 500;
 
@@ -63,7 +62,7 @@ export interface ProcessWagerInput {
   kind: WagerTransactionKind | string;
   money: { amount: string; currency: string };
   referenceExternalTransactionId?: string;
-  /** When present, inbox row is written in the same SQL transaction. */
+
   inbox?: { messageId: string; consumerName: string };
   correlationId?: string;
 }
@@ -147,7 +146,7 @@ export class ProcessWagerUseCase {
   ): Promise<ProcessWagerResult> {
     const fork = this.em.fork();
     return fork.transactional(async (tem) => {
-      // Inbox dedup (SQS path)
+
       if (input.inbox) {
         const existingInbox = await tem.findOne(InboxMessageEntity, {
           consumerName: input.inbox.consumerName,
@@ -164,7 +163,7 @@ export class ProcessWagerUseCase {
         }
       }
 
-      // Idempotency
+
       const existing = await tem.findOne(WagerTransactionEntity, {
         idempotencyKey: input.idempotencyKey,
       });
@@ -202,8 +201,8 @@ export class ProcessWagerUseCase {
         });
       }
 
-      // Lock wallet BEFORE inserting rows that FK-reference it.
-      // Avoids ShareLock(FK) → Exclusive(FOR UPDATE) upgrade deadlocks.
+
+
       await tem.findOne(
         WalletEntity,
         { id: input.walletId },
@@ -253,7 +252,7 @@ export class ProcessWagerUseCase {
     });
   }
 
-  /** Reprocess a PENDING_REFERENCE transaction (worker). */
+
   async reprocess(transactionId: string): Promise<ProcessWagerResult> {
     const fork = this.em.fork();
     return fork.transactional(async (tem) => {
@@ -305,7 +304,7 @@ export class ProcessWagerUseCase {
     const now = new Date();
     const correlationId = input.correlationId ?? tx.id;
 
-    // Lock wallet — concurrency unit is walletId
+
     const walletEntity = await tem.findOne(
       WalletEntity,
       { id: tx.walletId },
@@ -335,7 +334,7 @@ export class ProcessWagerUseCase {
       return this.toResult(tx, false);
     }
 
-    // Resolve reference for REFUND / ROLLBACK (and optional WIN)
+
     let reference: WagerTransaction | undefined;
     if (tx.requiresReference() || tx.referenceExternalTransactionId) {
       const refEntity = tx.referenceExternalTransactionId
@@ -439,7 +438,7 @@ export class ProcessWagerUseCase {
       }
     }
 
-    // Apply balance effects
+
     try {
       if (tx.kind === WagerTransactionKind.Loss) {
         tx.markProcessed(reference?.id, now, wallet.balance);
@@ -498,7 +497,7 @@ export class ProcessWagerUseCase {
         await this.claimReversal(tem, reference.id, "ROLLBACK", tx.id, now);
         const originalDir = reference.ledgerDirectionFor();
         if (originalDir === null) {
-          // Reference had no balance effect — just mark processed
+
           tx.markProcessed(reference.id, now, wallet.balance);
           applyTxStateToEntity(tx.toState(), entity);
           this.enqueueProcessed(tem, tx, correlationId, now);

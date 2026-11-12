@@ -6,7 +6,6 @@ export interface MoneyProps {
   currency: string;
 }
 
-/** Fixed monetary scale for the challenge (ISO-4217 minor units for BRL). */
 const SCALE = 2;
 
 const AMOUNT_PATTERN = /^-?\d+\.\d{2}$/;
@@ -16,11 +15,6 @@ Decimal.set({
   rounding: Decimal.ROUND_HALF_UP,
 });
 
-/**
- * Immutable money value object.
- * Persisted/serialized as decimal strings with exactly 2 fractional digits.
- * Never uses JS number/float for arithmetic.
- */
 export class Money {
   private constructor(
     private readonly value: Decimal,
@@ -86,7 +80,7 @@ export class Money {
     return this.currency === other.currency && this.value.equals(other.value);
   }
 
-  /** Rejects negative amounts at input contract boundaries. */
+
   assertNonNegative(context = "amount"): void {
     if (this.isNegative()) {
       throw new InvalidMoneyError(`${context} must not be negative`);

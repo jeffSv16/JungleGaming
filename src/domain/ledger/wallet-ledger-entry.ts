@@ -28,10 +28,6 @@ export interface LedgerEntryState {
   createdAt: Date;
 }
 
-/**
- * Immutable ledger entry. No mutable fields, no transition methods.
- * At most one entry per financial transaction per wallet.
- */
 export class WalletLedgerEntry {
   private constructor(
     public readonly id: string,
@@ -80,7 +76,7 @@ export class WalletLedgerEntry {
     );
   }
 
-  /** balanceBefore ± money === balanceAfter */
+
   isBalanced(): boolean {
     const expected =
       this.direction === LedgerDirection.Credit

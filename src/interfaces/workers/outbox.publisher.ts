@@ -10,10 +10,6 @@ import { AppLogger } from "../../infrastructure/observability/logger.service";
 import { MetricsService } from "../../infrastructure/observability/metrics.service";
 import { OutboxMessage } from "../../domain/outbox/outbox-message";
 
-/**
- * Concurrent-safe outbox publisher.
- * Claims due rows with SKIP LOCKED so multiple instances can share work.
- */
 @Injectable()
 export class OutboxPublisher implements OnModuleInit, OnModuleDestroy {
   private running = false;

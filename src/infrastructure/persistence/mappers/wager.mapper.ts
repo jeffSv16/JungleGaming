@@ -16,7 +16,6 @@ import { OutboxMessageEntity } from "../entities/outbox-message.entity";
 import { InboxMessageEntity } from "../entities/inbox-message.entity";
 import { formatNumeric } from "./numeric";
 
-
 export function mapWalletEntityToDomain(e: WalletEntity): Wallet {
   return Wallet.rehydrate({
     id: e.id,

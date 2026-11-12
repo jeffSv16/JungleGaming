@@ -77,7 +77,7 @@ export class OutboxMessage {
     this._nextAttemptAt = undefined;
   }
 
-  /** Increments attempts and schedules exponential backoff. */
+
   scheduleRetry(now: Date): void {
     this._attempts += 1;
     const delay = Math.min(

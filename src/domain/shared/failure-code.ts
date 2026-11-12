@@ -1,7 +1,4 @@
-/**
- * Stable, machine-readable failure taxonomy for providers.
- * Documented in ARCHITECTURE.md.
- */
+
 export enum FailureCode {
   InsufficientBalance = "INSUFFICIENT_BALANCE",
   NegativeBalanceOnReversal = "NEGATIVE_BALANCE_ON_REVERSAL",
